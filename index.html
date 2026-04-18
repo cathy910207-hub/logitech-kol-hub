@@ -328,8 +328,13 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
   .param-header{padding:10px 12px}
   /* 開團紀錄頁 hardcode padding 覆蓋 */
   #page-teambuy .page-content{padding:10px !important}
+  /* KOL 總表和其他 hardcode padding 覆蓋 */
+  #page-table > div[style*="padding"],
+  #page-teambuy > div[style*="padding"]{padding:10px !important}
   /* 轉換率表格可水平捲動 */
   .conv-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* table-scroll 高度在手機調整 */
+  .table-scroll{max-height:calc(100vh - 160px)}
   /* topbar 按鈕在手機不要換行 */
   .topbar-inner{flex-wrap:nowrap}
   /* 客群選擇單欄 */
@@ -573,6 +578,14 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
                 <div class="r-opt" id="rp-gaming" onclick="selProd('gaming')">Gaming<br><span style="font-size:9px;opacity:.5;font-weight:500">電競</span></div>
               </div>
             </div>
+            <div class="form-row">
+              <div class="form-lbl">開團經驗 <small>影響轉換率 ±20%</small></div>
+              <div class="radio-row">
+                <div class="r-opt" id="tb-exp-yes" onclick="selTBExp('yes')">有<br><span style="font-size:9px;opacity:.5;font-weight:500">×1.2</span></div>
+                <div class="r-opt sel-yes" id="tb-exp-unknown" onclick="selTBExp('unknown')">不確定<br><span style="font-size:9px;opacity:.5;font-weight:500">×1.0</span></div>
+                <div class="r-opt" id="tb-exp-no" onclick="selTBExp('no')">無<br><span style="font-size:9px;opacity:.5;font-weight:500">×0.85</span></div>
+              </div>
+            </div>
           </div>
           <div class="form-block">
             <div class="form-block-title">篩選評估</div>
@@ -763,6 +776,8 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
           <div class="param-note" style="margin-top:10px">每多 10 萬粉絲，轉換率乘以 0.88。公式：max(0.35, 0.88^((粉絲數−10萬)/10萬))</div>
         </div>
       </div>
+    </div>
+  </div>
 
   <!-- 開團紀錄頁面 -->
   <div id="page-teambuy" class="page">
@@ -1221,7 +1236,7 @@ let KOLS = [
 ];
 
 let nextId=18, filters={fp:'all',fpr:'all',fq:'all',fte:'all'};
-let estState={product:'',audience:'',quality:0,platform:'',mainPlatform:'yt'};
+let estState={product:'',audience:'',quality:0,platform:'',mainPlatform:'yt',teamBuyExp:'unknown'};
 let currentDrawerId=null, editingId=null;
 let modalState={product:'',audience:'',quality:0,teamBuy:'',logiCollab:'',platforms:[]};
 
@@ -1807,6 +1822,15 @@ async function fillAvgAOV() {
   }
 }
 
+function selTBExp(v){
+  estState.teamBuyExp=v;
+  ['yes','unknown','no'].forEach(s=>{
+    const el=document.getElementById('tb-exp-'+s);
+    if(el) el.className='r-opt'+(s===v?' sel-yes':'');
+  });
+  calcEst();
+}
+
 function selMainPlat(v){
   estState.mainPlatform=v;
   ['yt','ig','tw','tt','fb'].forEach(p=>{
@@ -1877,6 +1901,7 @@ function sendToEst(id){
     const platPriority=['tw','yt','ig','tt','fb'];
     const mainPlat=platPriority.find(p=>k.platforms.includes(p))||'yt';
     selMainPlat(mainPlat);
+    selTBExp(k.teamBuy||'unknown');
     selProd(k.product==='both'?'pws':k.product);
     document.querySelectorAll('#page-estimator .aud-btn').forEach(b=>{if(b.getAttribute('onclick').includes(k.audience))selAud(b,k.audience);});
     selQ(k.commentQuality);calcEst();
@@ -1898,14 +1923,14 @@ function calcEst(){
   const[minC,maxC]=(PARAMS.conv[audience]||PARAMS.conv['生活/混合型'])[qk];
   // 粉絲規模修正（彼得森321K×0.75 vs 雷蒙105K×0.99）
   const scaleMult = followers <= 100000 ? 1.0 : Math.max(0.35, Math.pow(0.88, (followers-100000)/100000));
-  // 平台轉換率乘數
+  // 開團經驗加成
+  const tbMult = estState.teamBuyExp==='yes' ? 1.2 : estState.teamBuyExp==='no' ? 0.85 : 1.0;
+  // 平台名稱
   const platNames={yt:'YouTube',ig:'Instagram',tw:'Twitch',tt:'TikTok',fb:'Facebook'};
   const mainPlat = estState.mainPlatform||'yt';
-  const platMult = 1.0;
   const daysMult = days<=1?0.4:days<=3?0.7:days<=5?0.88:days<=7?1.0:days<=10?1.12:days<=14?1.25:days<=21?1.38:days<=30?1.5:Math.min(1.5+((days-30)*0.01),1.8);
-  // 核心公式：粉絲數 × 轉換率 × 規模修正 × 平台乘數 × AOV × 天數加成
-  const cons=Math.round(followers*minC*scaleMult*price*daysMult);
-  const opt=Math.round(followers*maxC*scaleMult*price*daysMult);
+  const cons=Math.round(followers*minC*scaleMult*tbMult*price*daysMult);
+  const opt=Math.round(followers*maxC*scaleMult*tbMult*price*daysMult);
   const reachPeople = reachPct ? Math.round(followers * R) : null;
   const mid=Math.round((cons+opt)/2);
   let rbCls='rec-mid',rbTxt='可考慮，建議先小規模試合作';
@@ -1920,7 +1945,9 @@ function calcEst(){
       <div class="assump-row"><span class="assump-k">主要平台</span><span class="assump-v">${platNames[mainPlat]}</span></div>
       <div class="assump-row"><span class="assump-k">轉換率</span><span class="assump-v">${(minC*scaleMult*100).toFixed(4)}% – ${(maxC*scaleMult*100).toFixed(4)}%</span></div>
       <div class="assump-row"><span class="assump-k">規模修正</span><span class="assump-v">${scaleMult<1?`大帳號 ×${scaleMult.toFixed(2)}`:'×1.00（10萬以下）'}</span></div>
+      <div class="assump-row"><span class="assump-k">開團經驗</span><span class="assump-v">${tbMult===1.2?'有開過團 ×1.2':tbMult===0.85?'無開團經驗 ×0.85':'不確定 ×1.0'}</span></div>
       <div class="assump-row"><span class="assump-k">客群 × 品質</span><span class="assump-v">${audience} · ${quality}分</span></div>
+      <div class="assump-row"><span class="assump-k">開團經驗</span><span class="assump-v">${estState.teamBuyExp==='yes'?'有（×1.20）':estState.teamBuyExp==='no'?'無（×0.85）':'不確定（×1.00）'}</span></div>
       <div class="assump-row"><span class="assump-k">客單價</span><span class="assump-v">$${price.toLocaleString()}</span></div>
       <div class="assump-row"><span class="assump-k">開團天數</span><span class="assump-v">${days} 天（時長加成 ×${daysMult.toFixed(2)}）</span></div>
     </div>
@@ -2022,6 +2049,7 @@ async function loadAllTeamBuys(){
   listEl.innerHTML=`<div style="text-align:center;padding:30px;color:var(--text3);font-size:13px">載入中…</div>`;
   try {
     const rows=await sbFetch('team_buys?select=*&order=date.desc&limit=200');
+    _allTbRows = rows || [];
     if(!rows||rows.length===0){
       listEl.innerHTML=`<div style="text-align:center;padding:40px;color:var(--text3)"><div style="font-size:32px;margin-bottom:8px">📋</div><div style="font-size:13px">尚無開團紀錄</div><div style="font-size:11px;margin-top:4px">點開 KOL 詳細頁，從「開團紀錄」區塊新增</div></div>`;
       if(summaryEl)summaryEl.innerHTML='';
@@ -2034,7 +2062,7 @@ async function loadAllTeamBuys(){
       const kolName=kolMap[r.kol_id]||'';
       const matchSearch=!search||(kolName.toLowerCase().includes(search)||(r.brand||'').toLowerCase().includes(search)||(r.product||'').toLowerCase().includes(search));
       const matchPlat=!platFilter||r.platform===platFilter;
-      const matchProduct=!productFilter||(r.brand||'').includes(productFilter);
+      const matchProduct=!productFilter||((r.product_line||r.brand||'').includes(productFilter));
       return matchSearch&&matchPlat&&matchProduct;
     });
     // Summary stats
@@ -2080,7 +2108,7 @@ async function loadAllTeamBuys(){
                 ${r.note?`<div style="font-size:10px;color:var(--text3);margin-top:3px">${r.note}</div>`:''}
               </div>
               <button onclick="deleteTeamBuy(${r.id},null)" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:11px;padding:2px 4px;flex-shrink:0" title="刪除">✕</button>
-              <button onclick='openEditTeamBuyModal(${JSON.stringify(r)},null)' style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 4px;flex-shrink:0" title="編輯">✎</button>
+              <button onclick="editTbRecord(${r.id})" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:12px;padding:2px 4px;flex-shrink:0" title="編輯">✎</button>
             </div>
           `).join('')}
         </div>
@@ -2090,6 +2118,17 @@ async function loadAllTeamBuys(){
     console.error('Team buys load error:', e);
     listEl.innerHTML=`<div style="text-align:center;padding:30px;color:var(--red);font-size:12px">載入失敗：${e.message}</div>`;
   }
+}
+
+// 從全域暫存找紀錄來編輯，避免 JSON.stringify 特殊字元問題
+let _allTbRows = [];
+async function editTbRecord(id) {
+  // 先從暫存找
+  let r = _allTbRows.find(x => x.id === id);
+  if(!r) {
+    try { const rows = await sbFetch(`team_buys?id=eq.${id}&select=*`); r = rows?.[0]; } catch(e){}
+  }
+  if(r) openEditTeamBuyModal(r, r.kol_id);
 }
 
 // ── KOL Picker ──
