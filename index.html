@@ -1943,11 +1943,13 @@ function calcEst(){
       <div class="assump-row"><span class="assump-k">粉絲數</span><span class="assump-v">${followers.toLocaleString()}</span></div>
       ${reachPeople?`<div class="assump-row"><span class="assump-k">預估觸及人數</span><span class="assump-v">約 ${reachPeople.toLocaleString()} 人（${reachPct}%）</span></div>`:''}
       <div class="assump-row"><span class="assump-k">主要平台</span><span class="assump-v">${platNames[mainPlat]}</span></div>
-      <div class="assump-row"><span class="assump-k">轉換率</span><span class="assump-v">${(minC*scaleMult*100).toFixed(4)}% – ${(maxC*scaleMult*100).toFixed(4)}%</span></div>
-      <div class="assump-row"><span class="assump-k">規模修正</span><span class="assump-v">${scaleMult<1?`大帳號 ×${scaleMult.toFixed(2)}`:'×1.00（10萬以下）'}</span></div>
-      <div class="assump-row"><span class="assump-k">開團經驗</span><span class="assump-v">${tbMult===1.2?'有開過團 ×1.2':tbMult===0.85?'無開團經驗 ×0.85':'不確定 ×1.0'}</span></div>
-      <div class="assump-row"><span class="assump-k">客群 × 品質</span><span class="assump-v">${audience} · ${quality}分</span></div>
-      <div class="assump-row"><span class="assump-k">開團經驗</span><span class="assump-v">${estState.teamBuyExp==='yes'?'有（×1.20）':estState.teamBuyExp==='no'?'無（×0.85）':'不確定（×1.00）'}</span></div>
+      <div class="assump-row"><span class="assump-k">客群 × 留言品質</span><span class="assump-v">${audience} · ${quality}分 → 基礎 ${(minC*100).toFixed(4)}%–${(maxC*100).toFixed(4)}%</span></div>
+      <div class="assump-row"><span class="assump-k">帳號規模修正</span><span class="assump-v">${scaleMult<1?`大帳號（${Math.round(followers/10000)}萬粉）× ${scaleMult.toFixed(2)}`:'小帳號（10萬以下）× 1.00'}</span></div>
+      <div class="assump-row"><span class="assump-k">開團經驗修正</span><span class="assump-v">${tbMult===1.2?'曾開過團購 × 1.20':tbMult===0.85?'無開團經驗 × 0.85':'不確定 × 1.00'}</span></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:7px 10px;margin:6px 0;display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:10px;font-weight:800;color:var(--text2);letter-spacing:.03em">▶ 最終轉換率</span>
+        <span style="font-size:11px;font-weight:800;color:var(--yellow)">${(minC*scaleMult*tbMult*100).toFixed(4)}% – ${(maxC*scaleMult*tbMult*100).toFixed(4)}%</span>
+      </div>
       <div class="assump-row"><span class="assump-k">客單價</span><span class="assump-v">$${price.toLocaleString()}</span></div>
       <div class="assump-row"><span class="assump-k">開團天數</span><span class="assump-v">${days} 天（時長加成 ×${daysMult.toFixed(2)}）</span></div>
     </div>
