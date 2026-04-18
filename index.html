@@ -313,7 +313,7 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
   .topbar-inner{padding:0 10px;gap:8px}
   .page-title{font-size:14px}
   .page-desc{display:none}
-  .page{padding:12px}
+  .page{padding:10px}
   .drawer{width:100vw}
   .modal{max-width:100%}
   .modal-overlay{padding:0;align-items:flex-end}
@@ -321,6 +321,27 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
   .filter-row{gap:8px}
   .btn span,.btn-text{display:none}
   .topbar-inner .btn{padding:6px 10px}
+  /* 參數設定頁：兩欄改單欄 */
+  .params-grid{grid-template-columns:1fr !important}
+  /* 參數設定 body padding 縮小 */
+  .param-body{padding:12px}
+  .param-header{padding:10px 12px}
+  /* 開團紀錄頁 hardcode padding 覆蓋 */
+  #page-teambuy .page-content{padding:10px !important}
+  /* 轉換率表格可水平捲動 */
+  .conv-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* topbar 按鈕在手機不要換行 */
+  .topbar-inner{flex-wrap:nowrap}
+  /* 客群選擇單欄 */
+  .aud-grid{grid-template-columns:1fr !important}
+  /* Q分數縮小 */
+  .q-btn{min-width:0;flex:1;padding:6px 4px}
+  /* radio-row 換行 */
+  .radio-row{flex-wrap:wrap}
+  /* 篩選器換行 */
+  .filter-row,.search-filter-row{flex-wrap:wrap}
+  /* 摘要卡片單欄 */
+  #tb-summary{grid-template-columns:1fr 1fr !important}
 }
 @media (min-width: 769px) {
   .mobile-menu-btn{display:none !important}
@@ -529,14 +550,23 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
             <div class="form-row"><div class="form-lbl">KOL 名稱</div><input class="f-input" id="e-name" placeholder="例如：邦尼幫你" oninput="calcEst()"></div>
             <div class="form-row"><div class="form-lbl">粉絲數 / 訂閱數</div><input class="f-input" id="e-followers" type="number" placeholder="例如：402000" oninput="calcEst()"></div>
             <div class="form-row">
+              <div class="form-lbl">主要平台 <small>影響轉換率基準</small></div>
+              <div class="radio-row" style="flex-wrap:wrap;gap:5px">
+                <div class="r-opt sel-yes" id="ep-yt" onclick="selMainPlat('yt')">YouTube</div>
+                <div class="r-opt" id="ep-ig" onclick="selMainPlat('ig')">Instagram</div>
+                <div class="r-opt" id="ep-tw" onclick="selMainPlat('tw')">Twitch</div>
+                <div class="r-opt" id="ep-tt" onclick="selMainPlat('tt')">TikTok</div>
+                <div class="r-opt" id="ep-fb" onclick="selMainPlat('fb')">Facebook</div>
+              </div>
+            </div>
+            <div class="form-row">
               <div class="form-lbl">預估觸及率 (%)</div>
               <div style="display:flex;align-items:center;gap:8px">
                 <input class="f-input" id="e-reach" type="number" placeholder="例如：15" min="1" max="100" step="0.1" oninput="calcEst()" style="flex:1">
                 <span style="font-size:11px;color:var(--text3);flex-shrink:0">%</span>
               </div>
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">IG 約 8–15%，YT 約 15–22%，跨平台填綜合估計值</div>
+              <div style="font-size:10px;color:var(--text3);margin-top:4px" id="reach-hint">YT 約 15–22%，IG 約 8–15%</div>
             </div>
-
             <div class="form-row"><div class="form-lbl">產品線</div>
               <div class="radio-row">
                 <div class="r-opt" id="rp-pws" onclick="selProd('pws')">PWS<br><span style="font-size:9px;opacity:.5;font-weight:500">個人工作站</span></div>
@@ -654,7 +684,7 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
           </div>
         </div>
         <div class="param-body">
-          <div style="overflow-x:auto">
+          <div class="conv-table-wrap" style="overflow-x:auto;-webkit-overflow-scrolling:touch">
             <table style="width:100%;border-collapse:collapse;font-size:12px;min-width:560px">
               <thead>
                 <tr>
@@ -708,8 +738,31 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
           <div class="param-note" style="margin-top:12px">基礎分數為 40 分，最高 99 分。粉絲數 10 萬以上每 10 萬加 1 分，上限 +15。評分僅供排序參考，不代表絕對合適度。</div>
         </div>
       </div>
-    </div>
-  </div>
+
+      <!-- 粉絲規模修正說明 -->
+      <div class="param-card" style="margin-top:16px">
+        <div class="param-header">
+          <div>
+            <div class="param-title">粉絲規模修正（預估成效用）</div>
+            <div class="param-desc">大帳號受眾組成較雜，購買意圖被稀釋，轉換率會自動下調</div>
+          </div>
+        </div>
+        <div class="param-body">
+          <div style="font-size:11px">
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:2px solid var(--border);color:var(--text3);font-weight:600">
+              <span>粉絲數</span><span style="text-align:center">規模乘數</span><span style="text-align:right">依據</span>
+            </div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>10 萬以下</span><span style="text-align:center;font-weight:700;color:var(--pws)">×1.00</span><span style="text-align:right;color:var(--text3)">基準</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>10–20 萬</span><span style="text-align:center;font-weight:700">×0.88–0.99</span><span style="text-align:right;color:var(--text3)">雷蒙 ×0.99</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>20–30 萬</span><span style="text-align:center;font-weight:700">×0.77–0.88</span><span style="text-align:right;color:var(--text3)">估計值</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>30–40 萬</span><span style="text-align:center;font-weight:700">×0.68–0.75</span><span style="text-align:right;color:var(--text3)">彼得森 ×0.75</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>40 萬</span><span style="text-align:center;font-weight:700">×0.68</span><span style="text-align:right;color:var(--text3)">Didi ×0.68</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0;border-bottom:1px solid var(--border)"><span>50 萬</span><span style="text-align:center;font-weight:700">×0.59</span><span style="text-align:right;color:var(--text3)">估計值</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1fr 1fr;padding:6px 0"><span>100 萬以上</span><span style="text-align:center;font-weight:700;color:var(--red)">×0.35 下限</span><span style="text-align:right;color:var(--text3)">估計值</span></div>
+          </div>
+          <div class="param-note" style="margin-top:10px">每多 10 萬粉絲，轉換率乘以 0.88。公式：max(0.35, 0.88^((粉絲數−10萬)/10萬))</div>
+        </div>
+      </div>
 
   <!-- 開團紀錄頁面 -->
   <div id="page-teambuy" class="page">
@@ -726,7 +779,7 @@ nav{padding:12px 10px;flex:1;overflow-y:auto}
         </button>
       </div>
     </div>
-    <div style="padding:20px 26px">
+    <div style="padding:20px 26px" class="page-content">
       <!-- 統計摘要 -->
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px" id="tb-summary"></div>
       <!-- 篩選 -->
@@ -870,16 +923,17 @@ let PARAMS = {
     fb_video: [8, 18],
   },
   conv: {
-    // 根據真實數據校準（2025-2026 羅技台灣開團實績）
-    // 雷蒙 YT 105K 留言4 基礎轉換率 0.61%；彼得森 YT 321K 留言4 → 0.28%
-    // Didi IG 398K 留言4 基礎轉換率（÷0.45）→ 0.45%；Driver Twitch 18.5K 留言2 基礎（÷1.8）→ 0.43%
-    // 平均基礎轉換率約 0.44%，以此為中心設定各客群範圍
-    '職場/生產力':   {45:[0.0035,0.0065], 3:[0.0015,0.0035], 12:[0.0005,0.0015]},
-    '創作者/設計師': {45:[0.0035,0.0065], 3:[0.0015,0.0035], 12:[0.0005,0.0015]},
-    '科技/工程師':   {45:[0.0030,0.0065], 3:[0.0010,0.0030], 12:[0.0005,0.0015]},
-    '電競/遊戲':     {45:[0.0030,0.0055], 3:[0.0010,0.0025], 12:[0.0005,0.0010]},
-    '生活/混合型':   {45:[0.0020,0.0045], 3:[0.0008,0.0020], 12:[0.0003,0.0010]},
-    '娛樂/其他':     {45:[0.0008,0.0020], 3:[0.0005,0.0010], 12:[0.0002,0.0005]},
+    // 根據真實數據重新校準（2025-2026 羅技台灣開團實績）
+    // 公式：粉絲數 × 轉換率 × 規模修正 × 平台乘數 × AOV × 天數加成
+    // 彼得森 YT 321K 職場 留言4 → 0.05-0.12%（規模×0.75）
+    // 雷蒙 YT 105K 科技 留言4 → 0.06-0.14%（規模×0.99）
+    // Didi IG 398K 生活 留言4 → 0.02-0.06%（規模×0.68，IG×0.65）
+    '職場/生產力':   {45:[0.0005,0.0012], 3:[0.0002,0.0006], 12:[0.0001,0.0003]},
+    '創作者/設計師': {45:[0.0005,0.0012], 3:[0.0002,0.0006], 12:[0.0001,0.0003]},
+    '科技/工程師':   {45:[0.0006,0.0014], 3:[0.0002,0.0007], 12:[0.0001,0.0003]},
+    '電競/遊戲':     {45:[0.0004,0.0010], 3:[0.0002,0.0005], 12:[0.0001,0.0002]},
+    '生活/混合型':   {45:[0.0002,0.0006], 3:[0.0001,0.0003], 12:[0.00005,0.00015]},
+    '娛樂/其他':     {45:[0.0001,0.0003], 3:[0.00005,0.00015], 12:[0.00002,0.00008]},
   }
 };
 
@@ -1167,7 +1221,7 @@ let KOLS = [
 ];
 
 let nextId=18, filters={fp:'all',fpr:'all',fq:'all',fte:'all'};
-let estState={product:'',audience:'',quality:0,platform:''};
+let estState={product:'',audience:'',quality:0,platform:'',mainPlatform:'yt'};
 let currentDrawerId=null, editingId=null;
 let modalState={product:'',audience:'',quality:0,teamBuy:'',logiCollab:'',platforms:[]};
 
@@ -1753,6 +1807,21 @@ async function fillAvgAOV() {
   }
 }
 
+function selMainPlat(v){
+  estState.mainPlatform=v;
+  ['yt','ig','tw','tt','fb'].forEach(p=>{
+    const el=document.getElementById('ep-'+p);
+    if(el) el.className='r-opt'+(p===v?' sel-yes':'');
+  });
+  const hints={yt:'YT 約 15–22%',ig:'IG 約 8–15%',tw:'Twitch 直播約 40–75%',tt:'TikTok 約 10–18%',fb:'FB 約 4–9%'};
+  const defaults={yt:18,ig:12,tw:55,tt:14,fb:7};
+  const hint=document.getElementById('reach-hint');
+  if(hint) hint.textContent=hints[v]||'';
+  const reachEl=document.getElementById('e-reach');
+  if(reachEl&&!reachEl.value) reachEl.value=defaults[v];
+  calcEst();
+}
+
 function selProd(v){estState.product=v;document.getElementById('rp-pws').className='r-opt'+(v==='pws'?' sel-pws':'');document.getElementById('rp-gaming').className='r-opt'+(v==='gaming'?' sel-gam':'');calcEst();}
 function selPlat(el,v){document.querySelectorAll('.plat-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');estState.platform=v;calcEst();}
 
@@ -1803,9 +1872,11 @@ function sendToEst(id){
   setTimeout(()=>{
     document.getElementById('e-name').value=k.name;
     document.getElementById('e-followers').value=k.followers||'';
-    // 根據平台預填觸及率建議值
-    const defaultReach = k.platforms.includes('yt')?18:k.platforms.includes('tw')?55:12;
-    document.getElementById('e-reach').value=defaultReach;
+    document.getElementById('e-reach').value='';
+    // 自動選主要平台（優先順序：Twitch > YT > IG > TikTok > FB）
+    const platPriority=['tw','yt','ig','tt','fb'];
+    const mainPlat=platPriority.find(p=>k.platforms.includes(p))||'yt';
+    selMainPlat(mainPlat);
     selProd(k.product==='both'?'pws':k.product);
     document.querySelectorAll('#page-estimator .aud-btn').forEach(b=>{if(b.getAttribute('onclick').includes(k.audience))selAud(b,k.audience);});
     selQ(k.commentQuality);calcEst();
@@ -1819,16 +1890,23 @@ function calcEst(){
   const days=parseInt(document.getElementById('e-days').value)||7;
   const{product,audience,quality}=estState;
   const body=document.getElementById('rp-body');
-  if(!reachPct||!followers||!price||!audience||!quality||!product){
-    body.innerHTML=`<div class="rp-empty"><svg viewBox="0 0 24 24" fill="none"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M9 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>請填入所有必要欄位<br><span style="font-size:10px;opacity:.6">粉絲數、觸及率、客群、留言品質、客單價</span></div>`;return;
+  if(!followers||!price||!audience||!quality||!product){
+    body.innerHTML=`<div class="rp-empty"><svg viewBox="0 0 24 24" fill="none"><path d="M9 17H7A5 5 0 0 1 7 7h2M15 7h2a5 5 0 0 1 0 10h-2M9 12h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>請填入所有必要欄位<br><span style="font-size:10px;opacity:.6">粉絲數、客群、留言品質、客單價</span></div>`;return;
   }
   const R = reachPct/100;
   const qk=quality>=4?'45':quality===3?'3':'12';
   const[minC,maxC]=(PARAMS.conv[audience]||PARAMS.conv['生活/混合型'])[qk];
+  // 粉絲規模修正（彼得森321K×0.75 vs 雷蒙105K×0.99）
+  const scaleMult = followers <= 100000 ? 1.0 : Math.max(0.35, Math.pow(0.88, (followers-100000)/100000));
+  // 平台轉換率乘數
+  const platNames={yt:'YouTube',ig:'Instagram',tw:'Twitch',tt:'TikTok',fb:'Facebook'};
+  const mainPlat = estState.mainPlatform||'yt';
+  const platMult = 1.0;
   const daysMult = days<=1?0.4:days<=3?0.7:days<=5?0.88:days<=7?1.0:days<=10?1.12:days<=14?1.25:days<=21?1.38:days<=30?1.5:Math.min(1.5+((days-30)*0.01),1.8);
-  const reachPeople = Math.round(followers * R);
-  const cons=Math.round(reachPeople*minC*price*daysMult);
-  const opt=Math.round(reachPeople*maxC*price*daysMult);
+  // 核心公式：粉絲數 × 轉換率 × 規模修正 × 平台乘數 × AOV × 天數加成
+  const cons=Math.round(followers*minC*scaleMult*price*daysMult);
+  const opt=Math.round(followers*maxC*scaleMult*price*daysMult);
+  const reachPeople = reachPct ? Math.round(followers * R) : null;
   const mid=Math.round((cons+opt)/2);
   let rbCls='rec-mid',rbTxt='可考慮，建議先小規模試合作';
   if(opt>=150000&&quality>=4){rbCls='rec-good';rbTxt='建議合作，預估成效優';}
@@ -1838,8 +1916,10 @@ function calcEst(){
     <div class="assump-list">
       <div class="assump-sect">計算假設</div>
       <div class="assump-row"><span class="assump-k">粉絲數</span><span class="assump-v">${followers.toLocaleString()}</span></div>
-      <div class="assump-row"><span class="assump-k">觸及率</span><span class="assump-v">${reachPct}%（約 ${reachPeople.toLocaleString()} 人）</span></div>
-      <div class="assump-row"><span class="assump-k">轉換率</span><span class="assump-v">${(minC*100).toFixed(2)}% – ${(maxC*100).toFixed(2)}%</span></div>
+      ${reachPeople?`<div class="assump-row"><span class="assump-k">預估觸及人數</span><span class="assump-v">約 ${reachPeople.toLocaleString()} 人（${reachPct}%）</span></div>`:''}
+      <div class="assump-row"><span class="assump-k">主要平台</span><span class="assump-v">${platNames[mainPlat]}</span></div>
+      <div class="assump-row"><span class="assump-k">轉換率</span><span class="assump-v">${(minC*scaleMult*100).toFixed(4)}% – ${(maxC*scaleMult*100).toFixed(4)}%</span></div>
+      <div class="assump-row"><span class="assump-k">規模修正</span><span class="assump-v">${scaleMult<1?`大帳號 ×${scaleMult.toFixed(2)}`:'×1.00（10萬以下）'}</span></div>
       <div class="assump-row"><span class="assump-k">客群 × 品質</span><span class="assump-v">${audience} · ${quality}分</span></div>
       <div class="assump-row"><span class="assump-k">客單價</span><span class="assump-v">$${price.toLocaleString()}</span></div>
       <div class="assump-row"><span class="assump-k">開團天數</span><span class="assump-v">${days} 天（時長加成 ×${daysMult.toFixed(2)}）</span></div>
@@ -1908,7 +1988,7 @@ function saveParams(){
 }
 function resetParams(){
   PARAMS.reach={ig_post:[7,12],ig_reels:[10,18],ig_story:[3,7],yt:[14,22],tt:[10,18],tw_live:[40,75],fb_post:[4,9],fb_video:[8,18]};
-  PARAMS.conv={'職場/生產力':{45:[0.0035,0.0065],3:[0.0015,0.0035],12:[0.0005,0.0015]},'創作者/設計師':{45:[0.0035,0.0065],3:[0.0015,0.0035],12:[0.0005,0.0015]},'科技/工程師':{45:[0.0030,0.0065],3:[0.0010,0.0030],12:[0.0005,0.0015]},'電競/遊戲':{45:[0.0030,0.0055],3:[0.0010,0.0025],12:[0.0005,0.0010]},'生活/混合型':{45:[0.0020,0.0045],3:[0.0008,0.0020],12:[0.0003,0.0010]},'娛樂/其他':{45:[0.0008,0.0020],3:[0.0005,0.0010],12:[0.0002,0.0005]}};
+  PARAMS.conv={'職場/生產力':{45:[0.0005,0.0012],3:[0.0002,0.0006],12:[0.0001,0.0003]},'創作者/設計師':{45:[0.0005,0.0012],3:[0.0002,0.0006],12:[0.0001,0.0003]},'科技/工程師':{45:[0.0006,0.0014],3:[0.0002,0.0007],12:[0.0001,0.0003]},'電競/遊戲':{45:[0.0004,0.0010],3:[0.0002,0.0005],12:[0.0001,0.0002]},'生活/混合型':{45:[0.0002,0.0006],3:[0.0001,0.0003],12:[0.00005,0.00015]},'娛樂/其他':{45:[0.0001,0.0003],3:[0.00005,0.00015],12:[0.00002,0.00008]}};
   try { localStorage.removeItem('kol_params'); } catch(e){}
   loadParamInputs();
 }
